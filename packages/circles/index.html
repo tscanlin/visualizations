@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tim Scanlin</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+      }
+
+      #page {
+        height: inherit;
+        text-align: center;
+      }
+
+      #background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+      }
+
+      #container {
+        background-color: rgba(255,255,255,0.85);
+        border-radius: 2px;
+        padding: 10px;
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: perspective(1px) translate(-50%, -50%);
+        /*margin: 0 auto;*/
+        max-width: 100%;
+        width: 310px;
+      }
+
+      h1, h2 {
+        margin: 0;
+        font-weight: 300;
+      }
+
+      h1 {
+        font-size: 2.7em;
+      }
+
+      a {
+        color: #128bde;
+        text-decoration: none;
+        border-bottom: 1px solid #EEE;
+        transition: all 300ms ease;
+      }
+
+      a:hover {
+        border-bottom: 1px solid #128bde;
+      }
+
+      p {
+        font-size: 14px;
+        margin-top: 0;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* SVG styles */
+      #background path {
+        fill: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="page">
+      <svg id="background"></svg>
+    </div>
+
+    <script src="d3.min.js"></script>
+
+    <script>
+      var _gaq = _gaq || [];
+
+      // Constants.
+      var svg = d3.select('#background');
+      var QUANTITY = 7;
+      var POINTS = 4;
+      var OPACITY = 0.3;
+      // Delay to make sure everything is loaded first.
+      var START_DELAY = 500;
+
+      // Data generation functions.
+      function generateData() {
+        return d3.range(POINTS).map(getCoordinates);
+      };
+
+      function getCoordinates(i) {
+        var x = i * (1 / (POINTS - 1)) * window.innerWidth;
+        var y = Math.random() * window.innerHeight;
+        return {x: x, y: y};
+      };
+
+      function getDuration() {
+        return 11000 + (Math.random() * 3000);
+      };
+
+      function getHue() {
+        return Math.random() * 360;
+      };
+
+      function getGoodHues() {
+        var a = getHue();
+        var b = getHue();
+        if (Math.abs(a - b) < 200 && Math.abs(a - b) > 30) {
+          return {
+            a: a,
+            b: b
+          };
+        } else {
+          return getGoodHues();
+        }
+      }
+
+      // function getStroke() {
+      //   return Math.floor((Math.random()) * 2) + 0.5;
+      // };
+
+      // d3 line function / helper.
+      var line = d3.svg.line()
+        .interpolate('cardinal')
+        .x(function(d) { return d.x; })
+        .y(function(d) { return d.y; });
+
+      // Append paths.
+      var paths = svg.selectAll('path')
+        .data(d3.range(QUANTITY))
+        .enter()
+        .append('path');
+
+      // Primary transition function.
+      var transition = function() {
+        var duration = getDuration();
+        // Setup interpolation functions.
+        var dataInterpolate = d3.interpolate(generateData(), generateData());
+        var goodHues = getGoodHues();
+        var hueInterpolate = d3.interpolate(goodHues.a, goodHues.b);
+        var strokeInterpolate = d3.interpolate(0.5, 3);
+
+        // Do the interpolations and transitions for each path.
+        paths.each(function(d,i) {
+          var data = dataInterpolate(i * (1 / QUANTITY));
+          var color = hueInterpolate(i * (1 / QUANTITY));
+          var stroke = strokeInterpolate(i * (1 / QUANTITY));
+
+          d3.select(this)
+            .data([data])
+            .transition()
+            .duration(duration)
+            .ease('linear')
+            .attr('d', line)
+            .attr('stroke', 'hsla(' + color + ', 80%, 50%, ' + OPACITY + ')')
+            .attr('stroke-width', stroke);
+        });
+      };
+
+      // Transition looping functions.
+      var interval;
+      function startTransitionLoop() {
+        if (!interval) {
+          // First transition in a timeout so it animates right away.
+          setTimeout(transition, START_DELAY);
+          interval = setInterval(transition, (getDuration() - 3000));
+        }
+      }
+      function stopTransitionLoop() {
+        clearInterval(interval);
+        interval = undefined;
+        paths.transition().duration(0);
+      }
+
+      // Start it.
+      transition();
+      // Start loop.
+      startTransitionLoop();
+
+      // Bind event listeners.
+      document.ontouchstart = transition;
+
+      document.addEventListener('click', function(event) {
+        var playPause = document.querySelector('#play-pause');
+        if (event.target === playPause) {
+          // event.preventDefault();
+          console.log(playPause.checked)
+          if (playPause.checked) {
+            startTransitionLoop();
+          } else {
+            stopTransitionLoop();
+          }
+        } else if (playPause.checked) {
+          transition();
+        }
+
+        _gaq.push(['_trackEvent', 'play-pause', 'Click', this.checked]);
+      });
+    </script>
+
+  </body>
+</html>
