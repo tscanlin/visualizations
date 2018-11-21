@@ -103,25 +103,32 @@
 
       // Constants.
       var svg = d3.select('#background');
-      var QUANTITY = 7;
+      var QUANTITY = 30;
       var POINTS = 4;
-      var OPACITY = 0.3;
+      var OPACITY = 1;
       // Delay to make sure everything is loaded first.
       var START_DELAY = 500;
 
       // Data generation functions.
-      function generateData() {
-        return d3.range(POINTS).map(getCoordinates);
+      function generateData(event) {
+        return d3.range(POINTS).map(function(i) {
+          return getCoordinates(i, event)
+        });
       };
 
-      function getCoordinates(i) {
+      function getCoordinates(i, event) {
+        var step = window.innerWidth / POINTS
         var x = i * (1 / (POINTS - 1)) * window.innerWidth;
         var y = Math.random() * window.innerHeight;
+        // console.log(event, x, y)
+        if (event && (event.x > x - step || event.x < x + step)) {
+          y = event.y
+        }
         return {x: x, y: y};
       };
 
       function getDuration() {
-        return 11000 + (Math.random() * 3000);
+        return 4000 + (Math.random() * 3000);
       };
 
       function getHue() {
@@ -158,10 +165,10 @@
         .append('path');
 
       // Primary transition function.
-      var transition = function() {
+      var transition = function(e) {
         var duration = getDuration();
         // Setup interpolation functions.
-        var dataInterpolate = d3.interpolate(generateData(), generateData());
+        var dataInterpolate = d3.interpolate(generateData(e), generateData(e));
         var goodHues = getGoodHues();
         var hueInterpolate = d3.interpolate(goodHues.a, goodHues.b);
         var strokeInterpolate = d3.interpolate(0.5, 3);
@@ -185,11 +192,11 @@
 
       // Transition looping functions.
       var interval;
-      function startTransitionLoop() {
+      function startTransitionLoop(event) {
         if (!interval) {
           // First transition in a timeout so it animates right away.
           setTimeout(transition, START_DELAY);
-          interval = setInterval(transition, (getDuration() - 3000));
+          interval = setInterval(function () { transition(event) }, (getDuration() - 3000));
         }
       }
       function stopTransitionLoop() {
@@ -207,20 +214,14 @@
       document.ontouchstart = transition;
 
       document.addEventListener('click', function(event) {
-        var playPause = document.querySelector('#play-pause');
-        if (event.target === playPause) {
+        // var playPause = document.querySelector('#play-pause') || {}
+        // if (event.target === playPause) {
           // event.preventDefault();
-          console.log(playPause.checked)
-          if (playPause.checked) {
-            startTransitionLoop();
-          } else {
-            stopTransitionLoop();
-          }
-        } else if (playPause.checked) {
-          transition();
-        }
+          // console.log(playPause.checked)
+          // if (playPause.checked) {
+          transition(event)
+        // startTransitionLoop(event);
 
-        _gaq.push(['_trackEvent', 'play-pause', 'Click', this.checked]);
       });
     </script>
 
