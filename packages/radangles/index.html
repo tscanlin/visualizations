@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tim Scanlin</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+      }
+
+      #page {
+        height: inherit;
+        text-align: center;
+      }
+
+      #background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="page">
+      <svg id="background">
+      </svg>
+    </div>
+
+    <script>
+      function createEl (type, attrs) {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', type)
+        attrs && Object.keys(attrs).forEach(function(key) {
+          el.setAttribute(key, attrs[key])
+        })
+        return el
+      }
+
+      // Constants.
+      var svg = document.querySelector('#background');
+      // svg.setAttribute('viewBox', '0 0 1000 1000')
+      var MIN_SLICE_WIDTH = 100
+      var MAX_SLICE_WIDTH = 700
+      var SLICE_COUNT = 5
+      var WIDTH = window.innerWidth
+      var HEIGHT = window.innerHeight
+
+      function generatePoints (event) {
+        var data = []
+        var total = 0
+        console.log(total)
+        while (total < (WIDTH * 2) + (HEIGHT * 2)) {
+          var n = getSliceSize()
+          total += n
+          data.push(n)
+        }
+        console.log(data)
+        return data
+        // for (var i = 0; i < SLICE_COUNT; i++) {
+        //   data.push(n)
+        //   console.log(data)
+        // }
+      }
+
+      function getSliceSize () {
+        var size = (Math.random() * 500)
+        return size > 300 ? size : getSliceSize()
+      }
+
+      function createLayer (event) {
+        console.log(event)
+        var g = createEl('g')
+        var points = generatePoints()
+        var side = 0
+        var counterX = 0
+        var counterY = 0
+        for (var i = 0; i < points.length; i++) {
+          // console.log(i)
+          var start = i === 0 ? '0,0' : `${counterX},${counterY}`
+          if (side === 0) {
+            counterX += points[i]
+          } else if (side === 1) {
+            counterY += points[i]
+          } else if (side === 2) {
+            counterX -= points[i]
+          } else if (side === 3) {
+            counterY -= points[i]
+          }
+
+          if (counterX > WIDTH && side === 0) {
+            var extraX = counterX - WIDTH
+            counterX = WIDTH
+            counterY = extraX
+            side++
+          }
+
+          if (counterY > HEIGHT && side === 1) {
+            var extraY = counterY - HEIGHT
+            counterY = HEIGHT
+            counterX = WIDTH - extraY
+            side++
+          }
+
+          if (counterX < 0 && side === 2) {
+            var extraX = WIDTH + counterX
+            console.log('extraX', extraX)
+            counterX = 0
+            counterY = extraX
+            side++
+          }
+
+          var path = createEl('path', {
+            d: `M${start} L${counterX},${counterY} L${event.x},${event.y} Z`,
+            stroke: 'blue'
+          })
+          // var circle = createEl('circle')
+          g.append(path)
+        }
+        svg.appendChild(g)
+        generatePoints()
+      }
+
+      document.onclick = createLayer
+    </script>
+  </body>
+</html>
