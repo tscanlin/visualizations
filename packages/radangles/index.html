@@ -137,7 +137,7 @@
           var path = createEl('path', {
             d: `M${start} L${counterX},${counterY} L${eventX},${eventY} Z`,
             // stroke: 'blue',
-            fill: `hsla(${color}, 50%, 50%, ${i * .1})`
+            fill: `hsla(${color}, 50%, 50%, ${0.1 + (i * .04)})`
           })
           // var circle = createEl('circle')
           g.append(path)
