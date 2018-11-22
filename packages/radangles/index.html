@@ -54,12 +54,18 @@
 
       // Constants.
       var svg = document.querySelector('#background');
-      // svg.setAttribute('viewBox', '0 0 1000 1000')
-      var MIN_SLICE_WIDTH = 100
-      var MAX_SLICE_WIDTH = 700
-      var SLICE_COUNT = 5
+      var MIN_SLICE_WIDTH = 300
+      var MAX_SLICE_WIDTH = 500
       var WIDTH = window.innerWidth
       var HEIGHT = window.innerHeight
+
+      if (WIDTH < 500) {
+        document.ontouchstart = createLayer
+        var MIN_SLICE_WIDTH = 100
+        var MAX_SLICE_WIDTH = 200
+      } else {
+        document.onclick = createLayer
+      }
 
       function generatePoints (event) {
         var data = []
@@ -72,15 +78,11 @@
         }
         console.log(data)
         return data
-        // for (var i = 0; i < SLICE_COUNT; i++) {
-        //   data.push(n)
-        //   console.log(data)
-        // }
       }
 
       function getSliceSize () {
-        var size = (Math.random() * 500)
-        return size > 300 ? size : getSliceSize()
+        var size = (Math.random() * MAX_SLICE_WIDTH)
+        return size > MIN_SLICE_WIDTH ? size : getSliceSize()
       }
 
       function getHue() {
@@ -142,12 +144,6 @@
         }
         svg.appendChild(g)
         generatePoints()
-      }
-
-      if (WIDTH < 500) {
-        document.ontouchstart = createLayer
-      } else {
-        document.onclick = createLayer
       }
     </script>
   </body>
