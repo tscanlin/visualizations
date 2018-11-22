@@ -83,6 +83,10 @@
         return size > 300 ? size : getSliceSize()
       }
 
+      function getHue() {
+        return Math.random() * 360
+      }
+
       function createLayer (event) {
         console.log(event)
         var g = createEl('g')
@@ -90,6 +94,7 @@
         var side = 0
         var counterX = 0
         var counterY = 0
+        var color = getHue()
         for (var i = 0; i < points.length; i++) {
           // console.log(i)
           var start = i === 0 ? '0,0' : `${counterX},${counterY}`
@@ -118,7 +123,7 @@
           }
 
           if (counterX < 0 && side === 2) {
-            var extraX = WIDTH + counterX
+            var extraX = Math.abs(counterX)
             console.log('extraX', extraX)
             counterX = 0
             counterY = extraX
@@ -127,7 +132,8 @@
 
           var path = createEl('path', {
             d: `M${start} L${counterX},${counterY} L${event.x},${event.y} Z`,
-            stroke: 'blue'
+            // stroke: 'blue',
+            fill: `hsla(${color}, 50%, 50%, ${i * .1})`
           })
           // var circle = createEl('circle')
           g.append(path)
@@ -137,6 +143,7 @@
       }
 
       document.onclick = createLayer
+      document.ontouchstart = createLayer
     </script>
   </body>
 </html>
