@@ -88,6 +88,8 @@
       }
 
       function createLayer (event) {
+        var eventX = event.x || (event.touches && event.touches[0].pageX)
+        var eventY = event.y || (event.touches && event.touches[0].pageY)
         console.log(event)
         var g = createEl('g')
         var points = generatePoints()
@@ -131,7 +133,7 @@
           }
 
           var path = createEl('path', {
-            d: `M${start} L${counterX},${counterY} L${event.x},${event.y} Z`,
+            d: `M${start} L${counterX},${counterY} L${eventX},${eventY} Z`,
             // stroke: 'blue',
             fill: `hsla(${color}, 50%, 50%, ${i * .1})`
           })
@@ -142,8 +144,11 @@
         generatePoints()
       }
 
-      document.onclick = createLayer
-      document.ontouchstart = createLayer
+      if (WIDTH < 500) {
+        document.ontouchstart = createLayer
+      } else {
+        document.onclick = createLayer
+      }
     </script>
   </body>
 </html>
