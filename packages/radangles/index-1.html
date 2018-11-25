@@ -56,7 +56,7 @@
       var svg = document.querySelector('#background');
       var MIN_SLICE_ANGLE = 20
       var MAX_SLICE_ANGLE = 80
-      var MAX_GROUPS = 6
+      var MAX_GROUPS = 3
       var DEGREES_IN_CIRCLE = 360
       var SLICE_LENGTH = window.innerWidth * 2
       var RAD_RATIO = 57.2958
@@ -115,31 +115,23 @@
         var color = getHue()
         var angleTotal = 0
         var angleOffset = Math.random() * DEGREES_IN_CIRCLE
-        var transparentSlices = Math.floor(Math.random() * 3) + 2
         for (var i = 0; i < points.length; i++) {
 
           var angle = points[i]
           var previousPoint = getPoint(eventX, eventY, angleTotal + angleOffset)
           angleTotal += angle
           var point = getPoint(eventX, eventY, angleTotal + angleOffset)
-          console.log(Math.floor(Math.random() * 5))
           var path = createEl('path', {
             d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
             // fill: 'transparent',
-            fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / MAX_SLICE_COUNT)) + .2})`,
+            fill: `hsla(${color}, 50%, 50%, ${(i * (.5 / MAX_SLICE_COUNT)) + .2})`,
           })
 
           g.append(path)
 
         }
         svg.appendChild(g)
-
-        var clone = g.cloneNode(true)
-        clone.style.transform = 'rotateY(180deg) translateX(-100%)'
-        svg.appendChild(clone)
-
         if (svg.children.length > MAX_GROUPS) {
-          svg.removeChild(svg.children[1])
           svg.removeChild(svg.children[0])
         }
       }

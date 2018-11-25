@@ -54,20 +54,15 @@
 
       // Constants.
       var svg = document.querySelector('#background');
-      var MIN_SLICE_ANGLE = 20
-      var MAX_SLICE_ANGLE = 80
-      var MAX_GROUPS = 6
-      var DEGREES_IN_CIRCLE = 360
-      var SLICE_LENGTH = window.innerWidth * 2
-      var RAD_RATIO = 57.2958
+      var MIN_SLICE_WIDTH = 300
+      var MAX_SLICE_WIDTH = 500
       var WIDTH = window.innerWidth
       var HEIGHT = window.innerHeight
-      var MAX_SLICE_COUNT = DEGREES_IN_CIRCLE / MIN_SLICE_ANGLE
 
       if (WIDTH < 500) {
         document.ontouchstart = createLayer
-        // var MIN_SLICE_ANGLE = 100
-        // var MAX_SLICE_ANGLE = 200
+        var MIN_SLICE_WIDTH = 100
+        var MAX_SLICE_WIDTH = 200
       } else {
         document.onclick = createLayer
       }
@@ -75,31 +70,23 @@
       function generatePoints (event) {
         var data = []
         var total = 0
-        while (total < DEGREES_IN_CIRCLE) {
+        console.log(total)
+        while (total < (WIDTH * 2) + (HEIGHT * 2)) {
           var n = getSliceSize()
-          if (total + n > DEGREES_IN_CIRCLE) {
-            n = DEGREES_IN_CIRCLE - total
-          }
           total += n
           data.push(n)
         }
+        console.log(data)
         return data
       }
 
       function getSliceSize () {
-        var size = (Math.random() * MAX_SLICE_ANGLE)
-        return size > MIN_SLICE_ANGLE ? size : getSliceSize()
+        var size = (Math.random() * MAX_SLICE_WIDTH)
+        return size > MIN_SLICE_WIDTH ? size : getSliceSize()
       }
 
-      function getHue () {
-        return Math.random() * DEGREES_IN_CIRCLE
-      }
-
-      function getPoint (eventX, eventY, angle) {
-        return {
-          x: eventX + (SLICE_LENGTH * Math.cos(angle / RAD_RATIO)),
-          y: eventY + (SLICE_LENGTH * Math.sin(angle / RAD_RATIO))
-        }
+      function getHue() {
+        return Math.random() * 360
       }
 
       function createLayer (event) {
@@ -108,40 +95,55 @@
         console.log(event)
         var g = createEl('g')
         var points = generatePoints()
-        console.log(points)
         var side = 0
         var counterX = 0
         var counterY = 0
         var color = getHue()
-        var angleTotal = 0
-        var angleOffset = Math.random() * DEGREES_IN_CIRCLE
-        var transparentSlices = Math.floor(Math.random() * 3) + 2
         for (var i = 0; i < points.length; i++) {
+          // console.log(i)
+          var start = i === 0 ? '0,0' : `${counterX},${counterY}`
+          if (side === 0) {
+            counterX += points[i]
+          } else if (side === 1) {
+            counterY += points[i]
+          } else if (side === 2) {
+            counterX -= points[i]
+          } else if (side === 3) {
+            counterY -= points[i]
+          }
 
-          var angle = points[i]
-          var previousPoint = getPoint(eventX, eventY, angleTotal + angleOffset)
-          angleTotal += angle
-          var point = getPoint(eventX, eventY, angleTotal + angleOffset)
-          console.log(Math.floor(Math.random() * 5))
+          if (counterX > WIDTH && side === 0) {
+            var extraX = counterX - WIDTH
+            counterX = WIDTH
+            counterY = extraX
+            side++
+          }
+
+          if (counterY > HEIGHT && side === 1) {
+            var extraY = counterY - HEIGHT
+            counterY = HEIGHT
+            counterX = WIDTH - extraY
+            side++
+          }
+
+          if (counterX < 0 && side === 2) {
+            var extraX = Math.abs(counterX)
+            console.log('extraX', extraX)
+            counterX = 0
+            counterY = extraX
+            side++
+          }
+
           var path = createEl('path', {
-            d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
-            // fill: 'transparent',
-            fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / MAX_SLICE_COUNT)) + .2})`,
+            d: `M${start} L${counterX},${counterY} L${eventX},${eventY} Z`,
+            // stroke: 'blue',
+            fill: `hsla(${color}, 50%, 50%, ${i * .1})`
           })
-
+          // var circle = createEl('circle')
           g.append(path)
-
         }
         svg.appendChild(g)
-
-        var clone = g.cloneNode(true)
-        clone.style.transform = 'rotateY(180deg) translateX(-100%)'
-        svg.appendChild(clone)
-
-        if (svg.children.length > MAX_GROUPS) {
-          svg.removeChild(svg.children[1])
-          svg.removeChild(svg.children[0])
-        }
+        generatePoints()
       }
     </script>
   </body>
