@@ -47,6 +47,15 @@
       @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
       @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
+      .transition-500 {
+        transition: all 500ms ease-in-out;
+      }
+      .fade-in {
+        opacity: 1;
+      }
+      .fade-out {
+        opacity: 0;
+      }
     </style>
   </head>
 
@@ -69,20 +78,23 @@
       var svg = document.querySelector('#background');
       var MIN_SLICE_ANGLE = 20
       var MAX_SLICE_ANGLE = 80
-      var MIN_SPIN_DURATION = 3
-      var MAX_SPIN_DURATION = 15
+      var MIN_SPIN_DURATION = 30
+      var MAX_SPIN_DURATION = 50
       var MAX_GROUPS = 6
       var DEGREES_IN_CIRCLE = 360
-      var SLICE_LENGTH = window.innerWidth * 2
+      var SLICE_LENGTH = window.innerWidth * 3
       var RAD_RATIO = 57.2958
       var WIDTH = window.innerWidth
       var HEIGHT = window.innerHeight
       var MAX_SLICE_COUNT = DEGREES_IN_CIRCLE / MIN_SLICE_ANGLE
+      var timeout1 = null
+      var timeout2 = null
 
       if (WIDTH < 500) {
         document.ontouchstart = createLayer
         // var MIN_SLICE_ANGLE = 100
         // var MAX_SLICE_ANGLE = 200
+        document.onclick = createLayer
       } else {
         document.onclick = createLayer
       }
@@ -115,10 +127,12 @@
       function createLayer (event) {
         var eventX = event.x || (event.touches && event.touches[0].pageX)
         var eventY = event.y || (event.touches && event.touches[0].pageY)
-        console.log(event)
-        var g = createEl('g')
+        // console.log(event)
+        var g = createEl('g', {
+          class: 'transition-500 fade-out',
+        })
         var points = generatePoints()
-        console.log(points)
+        // console.log(points)
         var side = 0
         var counterX = 0
         var counterY = 0
@@ -132,28 +146,49 @@
           var previousPoint = getPoint(eventX, eventY, angleTotal + angleOffset)
           angleTotal += angle
           var point = getPoint(eventX, eventY, angleTotal + angleOffset)
-          console.log(Math.floor(Math.random() * 5))
+          // console.log(Math.floor(Math.random() * 5))
           var path = createEl('path', {
-            class: 'spin',
+            class: 'spin transition-500 fade-in',
             style: `transform-origin :${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`,
             d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
             // fill: 'transparent',
+            // 'fill-opacity': 0,
             fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / MAX_SLICE_COUNT)) + .2})`,
           })
 
           g.append(path)
-
+          // g.children[g.children.lengthpath['fill-opacity'] = 1
+          // path.classList.remove('fade-out')
+          // path.classList.add('fade-in')
         }
         svg.appendChild(g)
 
         var clone = g.cloneNode(true)
         clone.style.transform = 'rotateY(180deg) translateX(-100%)'
         svg.appendChild(clone)
-
-        if (svg.children.length > MAX_GROUPS) {
-          svg.removeChild(svg.children[1])
-          svg.removeChild(svg.children[0])
-        }
+        console.log(svg.children[0])
+        var count = svg.children.length - 2
+        console.log(count)
+        clearTimeout(timeout1)
+        timeout1 = setTimeout(() => {
+          if (svg.children[count] && svg.children[count + 1]) {
+            svg.children[count].classList.remove('fade-out')
+            svg.children[count].classList.add('fade-in')
+            svg.children[count + 1].classList.remove('fade-out')
+            svg.children[count + 1].classList.add('fade-in')
+          }
+          if (svg.children.length > MAX_GROUPS) {
+            svg.children[0].classList.remove('fade-in')
+            svg.children[0].classList.add('fade-out')
+            svg.children[1].classList.remove('fade-in')
+            svg.children[1].classList.add('fade-out')
+            clearTimeout(timeout2)
+            timeout2 = setTimeout(function() {
+              svg.removeChild(svg.children[1])
+              svg.removeChild(svg.children[0])
+            }, 500) // delay for animation to finish
+          }
+        }, 20) // delay to allow the dom node to be added
       }
     </script>
   </body>
