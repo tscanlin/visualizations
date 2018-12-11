@@ -129,8 +129,7 @@
         var eventY = event.y || (event.touches && event.touches[0].pageY)
         // console.log(event)
         var g = createEl('g', {
-          class: 'transition-500 fade-in',
-          style: `transform-origin: ${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`,
+          class: 'transition-500 fade-out',
         })
         var points = generatePoints()
         // console.log(points)
@@ -149,7 +148,8 @@
           var point = getPoint(eventX, eventY, angleTotal + angleOffset)
           // console.log(Math.floor(Math.random() * 5))
           var path = createEl('path', {
-            class: 'transition-500 fade-in',
+            class: 'spin transition-500 fade-in',
+            style: `transform-origin :${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`,
             d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
             // fill: 'transparent',
             // 'fill-opacity': 0,
@@ -164,9 +164,31 @@
         svg.appendChild(g)
 
         var clone = g.cloneNode(true)
-        console.log(WIDTH - eventX)
-        clone.style = `transform: rotateY(180deg); transform-origin: ${(WIDTH / 2)}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`
+        clone.style.transform = 'rotateY(180deg) translateX(-100%)'
         svg.appendChild(clone)
+        console.log(svg.children[0])
+        var count = svg.children.length - 2
+        console.log(count)
+        clearTimeout(timeout1)
+        timeout1 = setTimeout(() => {
+          if (svg.children[count] && svg.children[count + 1]) {
+            svg.children[count].classList.remove('fade-out')
+            svg.children[count].classList.add('fade-in')
+            svg.children[count + 1].classList.remove('fade-out')
+            svg.children[count + 1].classList.add('fade-in')
+          }
+          if (svg.children.length > MAX_GROUPS) {
+            svg.children[0].classList.remove('fade-in')
+            svg.children[0].classList.add('fade-out')
+            svg.children[1].classList.remove('fade-in')
+            svg.children[1].classList.add('fade-out')
+            clearTimeout(timeout2)
+            timeout2 = setTimeout(function() {
+              svg.removeChild(svg.children[1])
+              svg.removeChild(svg.children[0])
+            }, 500) // delay for animation to finish
+          }
+        }, 20) // delay to allow the dom node to be added
       }
     </script>
   </body>
