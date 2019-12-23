@@ -47,6 +47,32 @@
       @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
       @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
+
+      .form input[type=password],
+      .form input[type=email],
+      .form input[type=url],
+      .form input[type=date],
+      .form input[type=month],
+      .form input[type=time],
+      .form input[type=datetime],
+      .form input[type=datetime-local],
+      .form input[type=week],
+      .form input[type=tel],
+      .form input[type=color],
+      .form input[type=number],
+      .form input[type=search],
+      .form input[type=text],
+      .form select,
+      .form textarea {
+        padding: .5em .6em;
+        /* display: inline-block; */
+        border: 1px solid #ccc;
+        box-shadow: inset 0 1px 3px #ddd;
+        border-radius: 4px;
+        vertical-align: middle;
+        box-sizing: border-box;
+      }
+
       .transition-500 {
         transition: all 500ms ease-in-out;
       }
@@ -56,16 +82,56 @@
       .fade-out {
         opacity: 0;
       }
+      .db {
+        display: block;
+      }
     </style>
   </head>
 
   <body>
     <div id="page">
+      <div id="sidebar">
+      </div>
       <svg id="background">
       </svg>
     </div>
 
     <script>
+      var schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "title": "The Schema",
+        // "required": [
+        //   "checked",
+        // ],
+        "properties": {
+          "minSliceAngle": {
+            "type": "number",
+            "default": 20,
+          },
+          "maxSliceAngle": {
+            "type": "number",
+            "default": 80,
+          },
+          "minSpinDuration": {
+            "type": "number",
+            "default": 30,
+          },
+          "maxSpinDuration": {
+            "type": "number",
+            "default": 50,
+          },
+          "maxGroups": {
+            "type": "number",
+            "default": 6,
+          },
+          "sliceLength": {
+            "type": "number",
+            "default": 5000,
+          }
+        }
+      }
+
       function createEl (type, attrs) {
         var el = document.createElementNS('http://www.w3.org/2000/svg', type)
         attrs && Object.keys(attrs).forEach(function(key) {
@@ -74,26 +140,61 @@
         return el
       }
 
+      // FORM STUFF
+      function getInitialSchemaState (schema) {
+        return Object.keys(schema.properties).reduce(function(p, c) {
+          p[c] = schema.properties[c].default
+          return p
+        }, {})
+      }
+
+      function createForm (schema) {
+        var form = document.createElement('form')
+        form.className = 'form'
+        Object.keys(schema.properties).forEach(function (property) {
+          var label = document.createElement('label')
+          label.className = 'db'
+          label.textContent = property
+          var input = document.createElement('input')
+          input.className = 'db'
+          input.name = property
+          input.type = schema.properties[property].type
+          input.value = schema.properties[property].default
+          label.appendChild(input)
+          form.appendChild(label)
+          // schema.properties
+        })
+        return form
+      }
+
+      var state = getInitialSchemaState(schema)
+      var form = createForm(schema)
+
+      function onFormChange (e) {
+        var target = e.target
+        state[target.name] = target.value
+      }
+
+      form.addEventListener('change', onFormChange)
+      form.style = 'position: absolute; top: 0;'
+      document.body.appendChild(form)
+      console.log(state)
+
       // Constants.
-      var svg = document.querySelector('#background');
-      var MIN_SLICE_ANGLE = 20
-      var MAX_SLICE_ANGLE = 80
-      var MIN_SPIN_DURATION = 30
-      var MAX_SPIN_DURATION = 50
-      var MAX_GROUPS = 6
-      var DEGREES_IN_CIRCLE = 360
-      var SLICE_LENGTH = window.innerWidth * 3
+      var svg = document.querySelector('#background')
+      var sidebar = document.querySelector('#sidebar')
       var RAD_RATIO = 57.2958
+      var DEGREES_IN_CIRCLE = 360
       var WIDTH = window.innerWidth
       var HEIGHT = window.innerHeight
-      var MAX_SLICE_COUNT = DEGREES_IN_CIRCLE / MIN_SLICE_ANGLE
+      // var maxSliceCount = DEGREES_IN_CIRCLE / state.minSliceAngle
       var timeout1 = null
       var timeout2 = null
 
       if (WIDTH < 500) {
         document.ontouchstart = createLayer
-        // var MIN_SLICE_ANGLE = 100
-        // var MAX_SLICE_ANGLE = 200
+        // var state.minSliceAngle = 100
+        // var state.minSliceAngle = 200
         document.onclick = createLayer
       } else {
         document.onclick = createLayer
@@ -103,7 +204,7 @@
         var data = []
         var total = 0
         while (total < DEGREES_IN_CIRCLE) {
-          var n = randomIntInRange(MIN_SLICE_ANGLE, MAX_SLICE_ANGLE)
+          var n = randomIntInRange(state.minSliceAngle, state.maxSliceAngle)
           if (total + n > DEGREES_IN_CIRCLE) {
             n = DEGREES_IN_CIRCLE - total
           }
@@ -119,8 +220,8 @@
 
       function getPoint (eventX, eventY, angle) {
         return {
-          x: eventX + (SLICE_LENGTH * Math.cos(angle / RAD_RATIO)),
-          y: eventY + (SLICE_LENGTH * Math.sin(angle / RAD_RATIO))
+          x: eventX + (state.sliceLength * Math.cos(angle / RAD_RATIO)),
+          y: eventY + (state.sliceLength * Math.sin(angle / RAD_RATIO))
         }
       }
 
@@ -130,7 +231,7 @@
         // console.log(event)
         var g = createEl('g', {
           class: 'transition-500 fade-in',
-          style: `transform-origin: ${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`,
+          style: `transform-origin: ${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(state.minSpinDuration, state.maxSpinDuration)}s`,
         })
         var points = generatePoints()
         // console.log(points)
@@ -148,12 +249,13 @@
           angleTotal += angle
           var point = getPoint(eventX, eventY, angleTotal + angleOffset)
           // console.log(Math.floor(Math.random() * 5))
+          var maxSliceCount = DEGREES_IN_CIRCLE / state.minSliceAngle
           var path = createEl('path', {
             class: 'transition-500 fade-in',
             d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
             // fill: 'transparent',
             // 'fill-opacity': 0,
-            fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / MAX_SLICE_COUNT)) + .2})`,
+            fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / maxSliceCount)) + .2})`,
           })
 
           g.append(path)
@@ -165,7 +267,7 @@
 
         var clone = g.cloneNode(true)
         console.log(WIDTH - eventX)
-        clone.style = `transform: rotateY(180deg); transform-origin: ${(WIDTH / 2)}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`
+        clone.style = `transform: rotateY(180deg); transform-origin: ${(WIDTH / 2)}px ${eventY}px; animation-duration: ${randomIntInRange(state.minSpinDuration, state.maxSpinDuration)}s`
         svg.appendChild(clone)
       }
     </script>
