@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tim Scanlin</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+      }
+
+      #page {
+        height: inherit;
+        text-align: center;
+      }
+
+      #background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: rotateZ(0deg);
+      }
+
+
+      .spin {
+        animation-name: spin;
+        animation-duration: 5s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+      @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+      @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+      .transition-500 {
+        transition: all 500ms ease-in-out;
+      }
+      .fade-in {
+        opacity: 1;
+      }
+      .fade-out {
+        opacity: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="page">
+      <svg id="background">
+      </svg>
+    </div>
+
+    <script>
+      function createEl (type, attrs) {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', type)
+        attrs && Object.keys(attrs).forEach(function(key) {
+          el.setAttribute(key, attrs[key])
+        })
+        return el
+      }
+
+      // Constants.
+      var plasmaSize = 100
+      var plasmaCoords = [200, 500]
+      var plasmaTailLength = 400
+      var plasmaTailSteps = 20
+      var plasmaTailDirection = 0
+
+      var svg = document.querySelector('#background');
+
+      var g = createEl('g', {
+        class: 'transition-500',
+      })
+
+      for (let i = 0; i < plasmaTailSteps; i++) {
+        var circle = createEl('circle', {
+          class: 'transition-500 bg-black',
+          cx: plasmaCoords[0],
+          cy: plasmaCoords[1] - (i * ((plasmaTailLength / plasmaTailSteps) + 70)),
+          r: 100 - (i * plasmaTailLength / plasmaTailSteps),
+        })
+        g.append(circle)
+      }
+
+      svg.appendChild(g)
+
+      // var MIN_SLICE_ANGLE = 20
+      // var MAX_SLICE_ANGLE = 80
+      // var MIN_SPIN_DURATION = 30
+      // var MAX_SPIN_DURATION = 50
+      // var MAX_GROUPS = 6
+      // var DEGREES_IN_CIRCLE = 360
+      // var SLICE_LENGTH = window.innerWidth * 3
+      // var RAD_RATIO = 57.2958
+      // var WIDTH = window.innerWidth
+      // var HEIGHT = window.innerHeight
+      // var MAX_SLICE_COUNT = DEGREES_IN_CIRCLE / MIN_SLICE_ANGLE
+      // var timeout1 = null
+      // var timeout2 = null
+
+      // if (WIDTH < 500) {
+      //   document.ontouchstart = createLayer
+      //   // var MIN_SLICE_ANGLE = 100
+      //   // var MAX_SLICE_ANGLE = 200
+      //   document.onclick = createLayer
+      // } else {
+      //   document.onclick = createLayer
+      // }
+      //
+      // function generatePoints (event) {
+      //   var data = []
+      //   var total = 0
+      //   while (total < DEGREES_IN_CIRCLE) {
+      //     var n = randomIntInRange(MIN_SLICE_ANGLE, MAX_SLICE_ANGLE)
+      //     if (total + n > DEGREES_IN_CIRCLE) {
+      //       n = DEGREES_IN_CIRCLE - total
+      //     }
+      //     total += n
+      //     data.push(n)
+      //   }
+      //   return data
+      // }
+      //
+      // function randomIntInRange(min, max) {
+      //   return Math.floor(Math.random()*(max-min+1)+min);
+      // }
+      //
+      // function getPoint (eventX, eventY, angle) {
+      //   return {
+      //     x: eventX + (SLICE_LENGTH * Math.cos(angle / RAD_RATIO)),
+      //     y: eventY + (SLICE_LENGTH * Math.sin(angle / RAD_RATIO))
+      //   }
+      // }
+
+      // function createLayer (event) {
+      //   var eventX = event.x || (event.touches && event.touches[0].pageX)
+      //   var eventY = event.y || (event.touches && event.touches[0].pageY)
+      //   // console.log(event)
+      //   var g = createEl('g', {
+      //     class: 'transition-500 fade-out',
+      //   })
+      //   var points = generatePoints()
+      //   // console.log(points)
+      //   var side = 0
+      //   var counterX = 0
+      //   var counterY = 0
+      //   var color = randomIntInRange(0, DEGREES_IN_CIRCLE)
+      //   var angleTotal = 0
+      //   var angleOffset = randomIntInRange(0, DEGREES_IN_CIRCLE)
+      //   var transparentSlices = randomIntInRange(2, 5)
+      //   for (var i = 0; i < points.length; i++) {
+      //
+      //     var angle = points[i]
+      //     var previousPoint = getPoint(eventX, eventY, angleTotal + angleOffset)
+      //     angleTotal += angle
+      //     var point = getPoint(eventX, eventY, angleTotal + angleOffset)
+      //     // console.log(Math.floor(Math.random() * 5))
+      //     var path = createEl('path', {
+      //       class: 'spin transition-500 fade-in',
+      //       style: `transform-origin :${eventX}px ${eventY}px; animation-duration: ${randomIntInRange(MIN_SPIN_DURATION, MAX_SPIN_DURATION)}s`,
+      //       d: `M${eventX},${eventY} L${point.x},${point.y} L${previousPoint.x},${previousPoint.y} Z`,
+      //       // fill: 'transparent',
+      //       // 'fill-opacity': 0,
+      //       fill: i % transparentSlices === 0 ? 'transparent' : `hsla(${color}, 50%, 50%, ${(i * (.4 / MAX_SLICE_COUNT)) + .2})`,
+      //     })
+      //
+      //     g.append(path)
+      //     // g.children[g.children.lengthpath['fill-opacity'] = 1
+      //     // path.classList.remove('fade-out')
+      //     // path.classList.add('fade-in')
+      //   }
+      //   svg.appendChild(g)
+      //
+      //   var clone = g.cloneNode(true)
+      //   clone.style.transform = 'rotateY(180deg) translateX(-100%)'
+      //   svg.appendChild(clone)
+      //   console.log(svg.children[0])
+      //   var count = svg.children.length - 2
+      //   console.log(count)
+      //   clearTimeout(timeout1)
+      //   timeout1 = setTimeout(() => {
+      //     if (svg.children[count] && svg.children[count + 1]) {
+      //       svg.children[count].classList.remove('fade-out')
+      //       svg.children[count].classList.add('fade-in')
+      //       svg.children[count + 1].classList.remove('fade-out')
+      //       svg.children[count + 1].classList.add('fade-in')
+      //     }
+      //     if (svg.children.length > MAX_GROUPS) {
+      //       svg.children[0].classList.remove('fade-in')
+      //       svg.children[0].classList.add('fade-out')
+      //       svg.children[1].classList.remove('fade-in')
+      //       svg.children[1].classList.add('fade-out')
+      //       clearTimeout(timeout2)
+      //       timeout2 = setTimeout(function() {
+      //         svg.removeChild(svg.children[1])
+      //         svg.removeChild(svg.children[0])
+      //       }, 500) // delay for animation to finish
+      //     }
+      //   }, 20) // delay to allow the dom node to be added
+      // }
+    </script>
+  </body>
+</html>
