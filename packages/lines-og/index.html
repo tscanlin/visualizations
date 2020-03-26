@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>d3 Visualization</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+
+      #background {
+        bottom: 0;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 100%;
+        z-index: -1;
+      }
+
+      /* SVG styles */
+      #background path {
+        fill: none;
+      }
+    </style>
+    <script src="d3.min.js"></script>
+  </head>
+
+  <body>
+    <svg id="background"></svg>
+    <script>
+      var svg = d3.select('#background'),
+          quantity = 7,
+          points = 4;
+
+      function generateData() {
+        return d3.range(points).map(getCoordinates);
+      };
+
+      function getCoordinates(i) {
+        var x = i * (1 / (points - 1)) * window.innerWidth;
+        var y = Math.random() * (window.innerHeight / 2);
+        return {x: x, y: y};
+      };
+
+      function getHue() {
+        return Math.random() * 360;
+      };
+
+      function getStroke() {
+        return (Math.random()) * 3;
+      };
+
+      var line = d3.svg.line()
+        .interpolate('cardinal')
+        .x(function(d) { return d.x; })
+        .y(function(d) { return d.y; });
+
+      var paths = svg.selectAll('path')
+        .data(d3.range(quantity))
+        .enter()
+        .append('path');
+
+      var transition = function() {
+        var dataInterpolate = d3.interpolate(generateData(), generateData()),
+            hueInterpolate = d3.interpolate(getHue(), getHue()),
+            strokeInterpolate = d3.interpolate(getStroke(), getStroke());
+
+        paths.each(function(d,i) {
+          var data = dataInterpolate(i*(1/quantity)),
+              color = hueInterpolate(i*(1/quantity)),
+              stroke = strokeInterpolate(i*(1/quantity));
+
+          d3.select(this)
+            .data([data])
+            .transition()
+            .duration(3000)
+            .ease('linear')
+            .attr('d', line)
+            .attr('stroke', 'hsla('+color+', 80%, 50%, 0.5)')
+            .attr('stroke-width', stroke);
+        });
+      };
+
+      transition();
+
+      document.onclick = transition;
+      document.ontouchstart = transition;
+    </script>
+  </body>
+</html>
